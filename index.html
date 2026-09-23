@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La Fabrique des Nombres</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c:#e5484d; --c-dk:#a8232a; --c-lt:#fde4e4;
+  --d:#2f7fe0; --d-dk:#1a55a3; --d-lt:#deecfd;
+  --u:#23a55a; --u-dk:#127038; --u-lt:#dcf5e6;
+  --bg:#fff8ec; --ink:#2b2d42; --muted:#767a93; --gold:#f5b700; --card:#fff;
+  --s:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:"Nunito","Trebuchet MS",system-ui,sans-serif;background:var(--bg);color:var(--ink);
+  padding-bottom:150px;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;font-weight:600}
+button{font-family:inherit;font-weight:800;cursor:pointer;border:none}
+.hidden{display:none!important}
+
+/* ---------- header ---------- */
+header{display:flex;align-items:center;gap:10px;padding:10px 16px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.06);position:sticky;top:0;z-index:20}
+header h1{font-size:22px;margin:0;flex:1;font-weight:900}
+.hbtn{background:#f1f2f7;border-radius:14px;padding:10px 14px;font-size:18px;color:var(--ink)}
+#stars{font-size:20px;font-weight:900;background:#fff4cc;border-radius:14px;padding:8px 14px;white-space:nowrap}
+#stars.pop{animation:pop .5s}
+main{max-width:1100px;margin:0 auto;padding:16px}
+
+/* ---------- home ---------- */
+.hello{text-align:center;margin:8px 0 18px}
+.hello h2{font-size:30px;margin:6px 0;font-weight:900}
+.hello p{color:var(--muted);margin:0;font-size:18px}
+.legend{display:flex;justify-content:center;align-items:flex-end;gap:26px;flex-wrap:wrap;background:#fff;border-radius:20px;padding:16px;margin-bottom:18px;box-shadow:0 3px 12px rgba(0,0,0,.05);--s:10px}
+.legend figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:8px}
+.legend figcaption{font-size:16px;text-align:center}
+.legend .eq{font-size:17px;color:var(--muted);max-width:240px;text-align:center;align-self:center}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.card{background:#fff;border-radius:22px;padding:20px;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.07);border:3px solid transparent;transition:transform .15s}
+.card:hover{transform:translateY(-3px)}
+.card .ico{font-size:42px}
+.card h3{margin:6px 0 4px;font-size:22px;font-weight:900;color:var(--ink)}
+.card p{margin:0;color:var(--muted);font-size:16px;font-weight:600}
+.card.k1{border-color:var(--u)} .card.k2{border-color:var(--d)} .card.k3{border-color:var(--gold)} .card.k4{border-color:var(--c)}
+.settings{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin:22px 0 6px}
+.seg{display:flex;background:#fff;border-radius:16px;padding:5px;box-shadow:0 2px 8px rgba(0,0,0,.05);align-items:center}
+.seg span{padding:0 10px;color:var(--muted);font-size:15px}
+.seg button{background:transparent;padding:10px 14px;border-radius:12px;font-size:16px;color:var(--ink)}
+.seg button.on{background:var(--ink);color:#fff}
+
+/* ---------- exercise ---------- */
+.instr{background:#fff;border-radius:18px;padding:14px 18px;font-size:22px;line-height:1.4;box-shadow:0 3px 10px rgba(0,0,0,.05);margin-bottom:14px}
+.instr .target{display:block;font-size:44px;font-weight:900;margin-top:4px;letter-spacing:2px}
+.instr .target.words{font-size:30px;letter-spacing:0}
+.feedback{min-height:10px;border-radius:16px;padding:0 16px;font-size:20px;line-height:1.45;margin:14px 0}
+.feedback:not(:empty){padding:12px 16px}
+.feedback.ok{background:#e3f7ea;color:#14602f}
+.feedback.bad{background:#fff0e0;color:#8a4a00}
+.feedback.info{background:#eaf2ff;color:#1c4b8f}
+.actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:10px 0}
+.btn{background:var(--ink);color:#fff;border-radius:16px;padding:14px 24px;font-size:20px;box-shadow:0 4px 0 rgba(0,0,0,.2)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.2)}
+.btn.go{background:#1f9d55}
+.btn.ex{background:var(--gold);color:#3b2a00}
+.btn.pulse{animation:pulse 1.2s infinite}
+
+/* ---------- place-value table ---------- */
+.tbl{display:grid;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.06)}
+.th{padding:10px 6px;text-align:center;color:#fff;font-weight:900;font-size:20px}
+.th.c{background:var(--c)} .th.d{background:var(--d)} .th.u{background:var(--u)}
+.th.lab{background:#fff}
+.td{padding:12px 8px;min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border-top:2px solid #fff;transition:box-shadow .2s}
+.td.c{background:var(--c-lt)} .td.d{background:var(--d-lt)} .td.u{background:var(--u-lt)}
+.td.lab{background:#fff;font-weight:900;font-size:22px;padding:8px 12px;white-space:nowrap}
+.td.c+.td,.td.d+.td{border-left:3px dashed #fff}
+.td.hl,.th.hl{box-shadow:inset 0 0 0 4px var(--gold)}
+.td.wrong{box-shadow:inset 0 0 0 4px #ff8a00}
+
+.stack{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:flex-end}
+.stack.d{gap:5px}
+.stack.u{display:grid;grid-template-columns:repeat(5,var(--s));gap:3px}
+.blk{flex:none;border-radius:3px;position:relative;cursor:pointer;transition:opacity .2s,filter .2s}
+.blk.u{width:var(--s);height:var(--s);background:var(--u);box-shadow:inset 0 0 0 1px var(--u-dk),inset -2px -2px 0 rgba(0,0,0,.18)}
+.blk.d{width:var(--s);height:calc(var(--s)*10);background-color:var(--d);box-shadow:inset 0 0 0 1px var(--d-dk);
+  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--s) - 1px),rgba(0,0,0,.28) calc(var(--s) - 1px),rgba(0,0,0,.28) var(--s))}
+.blk.c{width:calc(var(--s)*10);height:calc(var(--s)*10);background-color:var(--c);box-shadow:inset 0 0 0 1px var(--c-dk);
+  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--s) - 1px),rgba(0,0,0,.22) calc(var(--s) - 1px),rgba(0,0,0,.22) var(--s)),
+  repeating-linear-gradient(to right,transparent 0,transparent calc(var(--s) - 1px),rgba(0,0,0,.22) calc(var(--s) - 1px),rgba(0,0,0,.22) var(--s))}
+.blk.counted{opacity:.35;filter:grayscale(.4)}
+.blk.carried{outline:3px dashed var(--gold);outline-offset:2px}
+.blk.removed{opacity:.25;filter:grayscale(1)}
+.blk.removed::after{content:"";position:absolute;inset:0;background:linear-gradient(45deg,transparent 45%,#d0021b 45%,#d0021b 55%,transparent 55%)}
+.blk.merge{animation:merge .6s forwards}
+.blk.pop{animation:pop .6s}
+.blk.glow{animation:glow 1s infinite}
+
+/* ---------- slots & pad ---------- */
+.slot{display:inline-flex;align-items:center;justify-content:center;min-width:58px;height:64px;padding:0 8px;border:3px dashed #9aa0b8;border-radius:14px;background:#fff;
+  font-size:40px;font-weight:900;vertical-align:middle;cursor:pointer;color:var(--ink)}
+.slot[data-len="2"]{min-width:84px} .slot[data-len="3"]{min-width:110px}
+.slot.c{border-color:var(--c);color:var(--c-dk)} .slot.d{border-color:var(--d);color:var(--d-dk)} .slot.u{border-color:var(--u);color:var(--u-dk)}
+.slot.active{border-style:solid;box-shadow:0 0 0 5px rgba(245,183,0,.45)}
+.slot.ok{background:#dff7e8;border-style:solid}
+.slot.bad{background:#ffe9d6;animation:shake .4s}
+.slot.help{background:#fff4cc;border-style:solid}
+.slot.locked{cursor:default}
+#pad{position:fixed;left:0;right:0;bottom:0;background:#fff;box-shadow:0 -4px 16px rgba(0,0,0,.1);padding:10px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;z-index:30}
+#pad button{width:64px;height:64px;border-radius:16px;font-size:30px;background:#f1f2f7;color:var(--ink);box-shadow:0 3px 0 #d7d9e4}
+#pad button:active{transform:translateY(2px);box-shadow:none}
+#pad .del{background:#ffe3e3}
+#pad .ok{width:150px;background:#1f9d55;color:#fff;font-size:22px;box-shadow:0 3px 0 #147040}
+
+/* ---------- posed operation ---------- */
+.opwrap{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;margin-bottom:14px}
+.posed{display:grid;background:#fff;border-radius:18px;padding:12px 18px;box-shadow:0 3px 12px rgba(0,0,0,.06);align-items:end;justify-items:center;row-gap:2px}
+.posed .ph{font-weight:900;font-size:18px;color:#fff;border-radius:8px;width:44px;text-align:center}
+.posed .ph.c{background:var(--c)} .posed .ph.d{background:var(--d)} .posed .ph.u{background:var(--u)}
+.posed .pc{font-size:40px;font-weight:900;width:52px;text-align:center;line-height:1.15;border-radius:10px;position:relative}
+.posed .pc.c{color:var(--c-dk)} .posed .pc.d{color:var(--d-dk)} .posed .pc.u{color:var(--u-dk)}
+.posed .pc.carry{font-size:22px;color:#b07b00;height:30px}
+.posed .pc.carry span{display:inline-block;background:#fff4cc;border:2px solid var(--gold);border-radius:50%;width:30px;height:30px;line-height:26px;animation:pop .6s}
+.posed .pc.hl{background:#fff4cc}
+.posed .sign{font-size:40px;font-weight:900}
+.posed .line{grid-column:1/-1;height:4px;background:var(--ink);width:100%;border-radius:2px;margin:4px 0}
+.posed s{opacity:.45;text-decoration-thickness:4px;text-decoration-color:#d0021b}
+.posed sup{position:absolute;top:-22px;left:0;right:0;font-size:22px;color:#d0021b}
+.posed .res{min-height:46px}
+.posed .res.zero{opacity:.3}
+.prompt{flex:1;min-width:260px;background:#fff;border-radius:18px;padding:16px 18px;box-shadow:0 3px 12px rgba(0,0,0,.06);font-size:28px;font-weight:900;line-height:1.6}
+.prompt .lbl{display:block;font-size:20px;font-weight:800}
+.prompt .lbl.c{color:var(--c)} .prompt .lbl.d{color:var(--d)} .prompt .lbl.u{color:var(--u)}
+.carrytxt{color:#b07b00}
+
+/* ---------- build controls ---------- */
+.ctrl{display:flex;align-items:center;gap:10px}
+.ctrl button{width:54px;height:54px;border-radius:50%;font-size:30px;color:#fff}
+.ctrl.c button{background:var(--c)} .ctrl.d button{background:var(--d)} .ctrl.u button{background:var(--u)}
+.ctrl button:disabled{opacity:.3}
+.ctrl .n{font-size:32px;font-weight:900;min-width:30px;text-align:center}
+.exbtn{margin-top:6px;font-size:16px!important;padding:10px 12px!important}
+
+/* ---------- recap ---------- */
+.recap{background:#fff;border-radius:20px;padding:16px 20px;text-align:center;box-shadow:0 3px 12px rgba(0,0,0,.06);font-size:22px;line-height:1.7;margin-top:14px}
+.recap .big{font-size:56px;font-weight:900;letter-spacing:3px}
+.recap .words{color:var(--muted);font-style:italic}
+.c-t{color:var(--c)} .d-t{color:var(--d)} .u-t{color:var(--u)}
+
+/* ---------- animations ---------- */
+@keyframes pop{0%{transform:scale(.3)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes merge{to{transform:scale(.2) translateX(-60px);opacity:0}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes glow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.4)}}
+.confetti{position:fixed;top:-20px;width:12px;height:18px;z-index:99;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+@media (max-width:640px){
+  header h1{font-size:17px}
+  .instr{font-size:19px} .th{font-size:15px} .td.lab{font-size:17px;padding:6px}
+  #pad button{width:52px;height:52px;font-size:26px} #pad .ok{width:120px}
+  .posed .pc{font-size:32px;width:42px}
+}
+</style>
+</head>
+<body>
+<header>
+  <button class="hbtn hidden" id="back" onclick="home()">🏠</button>
+  <h1 id="title">La Fabrique des Nombres</h1>
+  <button class="hbtn" id="speak" title="Écouter la consigne" onclick="readAloud()">🔊</button>
+  <div id="stars">⭐ 0</div>
+</header>
+<main id="main"></main>
+<div id="pad" class="hidden"></div>
+
+<script>
+/* ================= utilitaires ================= */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem('fdn_'+k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem('fdn_'+k, JSON.stringify(v)); }catch(e){} }
+};
+const S = { max: store.get('max', 99), carry: store.get('carry', false), voice: store.get('voice', false), stars: store.get('stars', 0), streak: 0 };
+const rnd = (a, b) => a + Math.floor(Math.random()*(b-a+1));
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const NAMES = { c:['centaine','centaines'], d:['dizaine','dizaines'], u:['unité','unités'] };
+const VAL = { c:100, d:10, u:1 };
+const ORDER = ['u','d','c'];
+const kinds = () => S.max > 99 ? ['c','d','u'] : ['d','u'];
+const nextK = k => { const n = ORDER[ORDER.indexOf(k)+1]; return kinds().includes(n) ? n : null; };
+const dg = n => ({ c: Math.floor(n/100), d: Math.floor(n/10)%10, u: n%10 });
+const plural = (n, k) => `${n} ${n>1 ? NAMES[k][1] : NAMES[k][0]}`;
+const cap = s => s[0].toUpperCase()+s.slice(1);
+const PRAISE = ['Bravo !','Super !','Génial !','Excellent !','Tu es une championne !','Magnifique !','Trop fort !'];
+
+/* nombres en lettres */
+const W = ['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf'];
+const T = {2:'vingt',3:'trente',4:'quarante',5:'cinquante',6:'soixante'};
+function words(n){
+  if(n < 20) return W[n];
+  if(n < 70){ const t = Math.floor(n/10), u = n%10; return T[t] + (u===1 ? ' et un' : u ? '-'+W[u] : ''); }
+  if(n < 80) return n===71 ? 'soixante et onze' : 'soixante-'+W[n-60];
+  if(n < 100) return n===80 ? 'quatre-vingts' : 'quatre-vingt-'+W[n-80];
+  const h = Math.floor(n/100), r = n%100;
+  let s = h===1 ? 'cent' : W[h]+' cent';
+  if(r===0) return h>1 ? s+'s' : s;
+  return s+' '+words(r);
+}
+/* nombre coloré par position */
+function colored(n){
+  const s = String(n), ks = ['u','d','c'];
+  return s.split('').map((ch,i) => `<span class="${ks[s.length-1-i]}-t">${ch}</span>`).join('');
+}
+
+/* ================= voix ================= */
+function talk(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const t = text.replace(/\p{Extended_Pictographic}/gu,'').replace(/−/g,' moins ').replace(/\+/g,' plus ').replace(/=/g,' égale ').replace(/\?/g,' ? ');
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = 'fr-FR'; u.rate = 0.9;
+    const v = speechSynthesis.getVoices().find(v => v.lang && v.lang.startsWith('fr'));
+    if(v) u.voice = v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function readAloud(){
+  const parts = [];
+  if($('#instr')) parts.push($('#instr').innerText);
+  if($('#prompt') && !$('#prompt').classList.contains('hidden')) parts.push($('#prompt').innerText);
+  if($('#feedback')) parts.push($('#feedback').innerText);
+  talk(parts.join('. ') || 'Choisis un jeu !');
+}
+
+/* ================= étoiles & fête ================= */
+function drawStars(){ const el=$('#stars'); el.textContent='⭐ '+S.stars; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+function addStar(){
+  S.stars++; S.streak++; store.set('stars', S.stars); drawStars();
+  if(S.streak % 5 === 0) confetti();
+}
+function confetti(){
+  const cols=['#e5484d','#2f7fe0','#23a55a','#f5b700','#a855f7'];
+  for(let i=0;i<60;i++){
+    const c=document.createElement('div'); c.className='confetti';
+    c.style.left=Math.random()*100+'vw'; c.style.background=pick(cols);
+    c.style.animationDuration=(1.5+Math.random()*1.5)+'s'; c.style.animationDelay=(Math.random()*.4)+'s';
+    document.body.appendChild(c); setTimeout(()=>c.remove(), 3500);
+  }
+}
+
+/* ================= feedback ================= */
+function say(html, type='info'){
+  const f = $('#feedback'); if(!f) return;
+  f.className = 'feedback '+type; f.innerHTML = html;
+  if(S.voice) talk(f.innerText);
+}
+function actions(html){ $('#actions').innerHTML = html; }
+
+/* ================= pavé numérique ================= */
+let active = null;
+function buildPad(){
+  const p = $('#pad');
+  p.innerHTML = [1,2,3,4,5,6,7,8,9,0].map(n=>`<button onclick="typeDigit('${n}')">${n}</button>`).join('')
+    + `<button class="del" onclick="delDigit()">⌫</button><button class="ok" onclick="validate()">✔ Valider</button>`;
+}
+function slot(id, kind='', len=1){ return `<div class="slot ${kind}" id="${id}" data-len="${len}"></div>`; }
+function freeSlots(){ return $$('#main .slot:not(.locked)'); }
+function bindSlots(){
+  $$('#main .slot').forEach(el => el.onclick = () => activate(el));
+  const f = freeSlots(); activate(f[0] || null);
+  $('#pad').classList.toggle('hidden', f.length===0);
+}
+function activate(el){
+  if(active) active.classList.remove('active');
+  active = (el && !el.classList.contains('locked')) ? el : null;
+  if(active) active.classList.add('active');
+}
+function typeDigit(k){
+  if(!active) return;
+  const len = +active.dataset.len; let t = active.textContent;
+  active.classList.remove('bad');
+  if(len===1){
+    active.textContent = k;
+    const f = freeSlots(), i = f.indexOf(active);
+    const nx = f.slice(i+1).find(s => s.textContent==='');
+    if(nx) activate(nx);
+  } else if(t.length < len) active.textContent = t + k;
+}
+function delDigit(){ if(active){ active.textContent = active.textContent.slice(0,-1); active.classList.remove('bad'); } }
+function validate(){ if(screen && screen.check) screen.check(); }
+document.addEventListener('keydown', e => {
+  if(/^[0-9]$/.test(e.key)) typeDigit(e.key);
+  else if(e.key==='Backspace'){ e.preventDefault(); delDigit(); }
+  else if(e.key==='Enter'){ e.preventDefault(); const b=$('#actions .btn'); if(b && !freeSlots().length) b.click(); else validate(); }
+  else if(e.key==='Tab' || e.key==='ArrowRight' || e.key==='ArrowLeft'){
+    const f = freeSlots(); if(!f.length) return; e.preventDefault();
+    const i = f.indexOf(active), d = e.key==='ArrowLeft' || e.shiftKey ? -1 : 1;
+    activate(f[(i+d+f.length)%f.length]);
+  }
+});
+
+/* ================= tableau C/D/U ================= */
+function stack(k, n, cls=''){ let h=''; for(let i=0;i<n;i++) h+=`<div class="blk ${k} ${cls}"></div>`; return `<div class="stack ${k}">${h}</div>`; }
+function stackMix(k, parts){ let h=''; for(const p of parts) for(let i=0;i<p.n;i++) h+=`<div class="blk ${k} ${p.cls||''}"></div>`; return `<div class="stack ${k}">${h}</div>`; }
+function table(rows, s){
+  const ks = kinds(), w = {c:'3fr', d:'1.6fr', u:'1.2fr'};
+  let h = `<div class="tbl" style="--s:${s}px;grid-template-columns:auto ${ks.map(k=>w[k]).join(' ')}">`;
+  h += `<div class="th lab"></div>` + ks.map(k=>`<div class="th ${k}" data-k="${k}">${cap(NAMES[k][1])}</div>`).join('');
+  for(const r of rows){
+    h += `<div class="td lab">${r.label||''}</div>`;
+    for(const k of ks) h += `<div class="td ${k}" id="${r.id}-${k}" data-k="${k}">${r.html ? r.html(k) : stack(k, r.v[k])}</div>`;
+  }
+  return h + '</div>';
+}
+function hl(k){ $$('[data-k]').forEach(e => e.classList.toggle('hl', e.dataset.k===k)); }
+/* toucher un bloc pour le "compter" */
+document.addEventListener('click', e => {
+  const b = e.target.closest('.tbl .blk');
+  if(b && !b.classList.contains('removed') && !b.classList.contains('merge')) b.classList.toggle('counted');
+});
+
+/* ================= écrans ================= */
+let screen = null;
+function mount(title, instr){
+  $('#title').textContent = title;
+  $('#back').classList.remove('hidden');
+  $('#main').innerHTML = `<div class="instr" id="instr">${instr}</div><div id="zone"></div><div class="feedback" id="feedback"></div><div class="actions" id="actions"></div>`;
+  if(S.voice) setTimeout(readAloud, 250);
+}
+function recap(n){
+  const ks = kinds().filter(k => k!=='c' || n>=100), v = dg(n);
+  return `<div class="recap">
+    <div class="big">${colored(n)}</div>
+    <div>${ks.map(k=>`<span class="${k}-t">${plural(v[k],k)}</span>`).join(' + ')}</div>
+    <div>${colored(n)} = ${ks.map(k=>`<span class="${k}-t">${v[k]*VAL[k]}</span>`).join(' + ')}</div>
+    <div class="words">« ${words(n)} »</div></div>`;
+}
+function genNumber(){
+  if(S.max <= 99){ let n = rnd(10, 99); if(Math.random()<.15) n -= n%10; return n; }
+  let v = { c: rnd(1,9), d: rnd(0,9), u: rnd(0,9) };
+  const r = Math.random();
+  if(r < .15) v.d = 0; else if(r < .3) v.u = 0;
+  return v.c*100 + v.d*10 + v.u;
+}
+
+/* ---------- ACCUEIL ---------- */
+function home(){
+  screen = null; activate(null);
+  try{ speechSynthesis.cancel(); }catch(e){}
+  $('#title').textContent = 'La Fabrique des Nombres';
+  $('#back').classList.add('hidden'); $('#pad').classList.add('hidden');
+  $('#main').innerHTML = `
+  <div class="hello"><h2>Bonjour ! 👋</h2><p>Aujourd'hui on joue avec les centaines, les dizaines et les unités.</p></div>
+  <div class="legend">
+    <figure><div class="blk c"></div><figcaption><b class="c-t">1 centaine</b><br>= 100 cubes</figcaption></figure>
+    <figure><div class="blk d"></div><figcaption><b class="d-t">1 dizaine</b><br>= 10 cubes</figcaption></figure>
+    <figure><div class="blk u"></div><figcaption><b class="u-t">1 unité</b><br>= 1 cube</figcaption></figure>
+    <div class="eq">10 unités = 1 dizaine<br>10 dizaines = 1 centaine</div>
+  </div>
+  <div class="cards">
+    <button class="card k1" onclick="startCount()"><div class="ico">🔍</div><h3>Je compte</h3><p>Regarde les blocs et trouve le nombre.</p></button>
+    <button class="card k2" onclick="startBuild()"><div class="ico">🧱</div><h3>Je fabrique</h3><p>Construis le nombre avec les blocs.</p></button>
+    <button class="card k3" onclick="startAdd()"><div class="ico">➕</div><h3>J'additionne</h3><p>Des additions colonne par colonne.</p></button>
+    <button class="card k4" onclick="startSub()"><div class="ico">➖</div><h3>Je soustrais</h3><p>Des soustractions colonne par colonne.</p></button>
+  </div>
+  <div class="settings">
+    <div class="seg"><span>Nombres</span>
+      <button class="${S.max===99?'on':''}" onclick="setOpt('max',99)">jusqu'à 99</button>
+      <button class="${S.max===999?'on':''}" onclick="setOpt('max',999)">jusqu'à 999</button></div>
+    <div class="seg"><span>Calculs</span>
+      <button class="${!S.carry?'on':''}" onclick="setOpt('carry',false)">sans retenue</button>
+      <button class="${S.carry?'on':''}" onclick="setOpt('carry',true)">avec retenue</button></div>
+    <div class="seg"><span>Voix</span>
+      <button class="${!S.voice?'on':''}" onclick="setOpt('voice',false)">non</button>
+      <button class="${S.voice?'on':''}" onclick="setOpt('voice',true)">oui</button></div>
+  </div>`;
+}
+function setOpt(k, v){ S[k] = v; store.set(k, v); home(); }
+
+/* ---------- 1. JE COMPTE ---------- */
+function startCount(){
+  const n = genNumber(), v = dg(n), ks = kinds();
+  screen = { n, v, step:1, tries:{c:0,d:0,u:0,n:0}, help:false, check: checkCount };
+  mount('🔍 Je compte', `Compte les blocs de chaque couleur.<br>Combien de ${ks.map(k=>`<b class="${k}-t">${NAMES[k][1]}</b>`).join(', ')} ?
+    <div style="font-size:16px;color:var(--muted);margin-top:4px">Astuce : touche un bloc pour le marquer comme compté.</div>`);
+  $('#zone').innerHTML = table([
+    { id:'r', label:'', v },
+    { id:'ans', label:'Combien ?', html: k => slot('s-'+k, k, 1) }
+  ], S.max>99 ? 12 : 18) + `<div id="step2"></div>`;
+  bindSlots();
+}
+function hintCount(k, n){
+  if(n===0) return `Il n'y a aucun bloc dans cette colonne : on écrit <b>0</b>.`;
+  const what = { c:'les grandes plaques rouges (1 plaque = 1 centaine = 100 cubes)', d:'les barres bleues (1 barre = 1 dizaine = 10 cubes)', u:'les petits cubes verts (1 cube = 1 unité)' }[k];
+  return `Recompte ${what}. Touche-les un par un !`;
+}
+function checkCount(){
+  const sc = screen, ks = kinds();
+  if(sc.step===1){
+    const msgs = [];
+    for(const k of ks){
+      const el = $('#s-'+k); if(el.classList.contains('locked')) continue;
+      $('#ans-'+k).classList.remove('wrong');
+      if(el.textContent===''){ msgs.push(`Il manque le nombre de <b class="${k}-t">${NAMES[k][1]}</b>.`); continue; }
+      if(+el.textContent === sc.v[k]){ el.classList.add('ok','locked'); continue; }
+      sc.tries[k]++; el.classList.add('bad'); $('#ans-'+k).classList.add('wrong');
+      if(sc.tries[k] >= 2){
+        sc.help = true; el.textContent = sc.v[k]; el.classList.remove('bad'); el.classList.add('help','locked');
+        msgs.push(`<b class="${k}-t">${cap(NAMES[k][1])}</b> : il y en a <b>${sc.v[k]}</b>. ${sc.v[k]===0 ? "Aucun bloc, donc on écrit 0." : "Recompte-les avec moi en les touchant !"}`);
+      } else msgs.push(`<b class="${k}-t">${cap(NAMES[k][1])}</b> : ${hintCount(k, sc.v[k])}`);
+    }
+    if(freeSlots().filter(s=>s.id.startsWith('s-')).length === 0){
+      sc.step = 2;
+      $('#step2').innerHTML = `<div class="instr" style="margin-top:14px">Maintenant écris le nombre en chiffres : ${slot('s-n','',ks.length)}</div>`;
+      bindSlots();
+      say((msgs.length ? msgs.join('<br>')+'<br>' : '👍 Parfait ! ') + `Les chiffres se rangent dans l'ordre du tableau : ${ks.map(k=>`<b class="${k}-t">${NAMES[k][1]}</b>`).join(', puis ')}.`, msgs.length ? 'bad' : 'ok');
+    } else { say(msgs.join('<br>'), 'bad'); bindSlots(); }
+    return;
+  }
+  const el = $('#s-n'); if(el.textContent==='') return say('Écris le nombre dans la case.', 'info');
+  if(+el.textContent === sc.n){
+    el.classList.add('ok','locked'); finish(sc.n, sc.help, 'startCount');
+  } else {
+    sc.tries.n++; el.classList.add('bad');
+    if(sc.tries.n >= 2){ sc.help = true; el.textContent = sc.n; el.classList.remove('bad'); el.classList.add('help','locked'); finish(sc.n, true, 'startCount'); }
+    else say(`Pas tout à fait ! Regarde les chiffres que tu as trouvés dans le tableau et recopie-les dans le même ordre : ${kinds().map(k=>`<b class="${k}-t">${NAMES[k][1]}</b>`).join(', ')}.`, 'bad');
+  }
+}
+function finish(n, helped, again, extra=''){
+  activate(null); $('#pad').classList.add('hidden');
+  if(!helped) addStar(); else S.streak = 0;
+  say(helped ? `On a trouvé ensemble ! Essaie le suivant tout(e) seul(e) 💪` : `${pick(PRAISE)} ⭐`, helped ? 'info' : 'ok');
+  $('#feedback').insertAdjacentHTML('afterend', `<div id="recapbox">${extra}${recap(n)}</div>`);
+  actions(`<button class="btn go" onclick="document.getElementById('recapbox')?.remove();${again}()">Suivant ➜</button>`);
+}
+
+/* ---------- 2. JE FABRIQUE ---------- */
+function startBuild(){
+  const n = genNumber(), v = dg(n), ks = kinds();
+  const mode = pick(['chiffres','chiffres','lettres','decomp']);
+  let target;
+  if(mode==='chiffres') target = `<span class="target">${n}</span>`;
+  else if(mode==='lettres') target = `<span class="target words">${words(n)}</span>`;
+  else {
+    const parts = shuffle(ks.filter(k=>v[k]>0).map(k=>plural(v[k],k)));
+    target = `<span class="target words">${parts.length>1 ? parts.slice(0,-1).join(', ')+' et '+parts.at(-1) : parts[0]}</span>`;
+  }
+  screen = { n, v, have:{c:0,d:0,u:0}, tries:0, help:false, done:false, check: checkBuild };
+  mount('🧱 Je fabrique', `Fabrique ce nombre avec les blocs :${target}`);
+  $('#zone').innerHTML = table([
+    { id:'bt', label:'', html: k => stack(k,0) },
+    { id:'bc', label:'', html: k => `<div class="ctrl ${k}"><button id="m-${k}" onclick="bAdd('${k}',-1)">−</button><span class="n" id="n-${k}">0</span><button id="p-${k}" onclick="bAdd('${k}',1)">+</button></div><div id="ex-${k}"></div>` }
+  ], S.max>99 ? 12 : 18);
+  actions(`<button class="btn go" onclick="checkBuild()">✔ J'ai fini</button>`);
+  $('#pad').classList.add('hidden');
+  renderBuild();
+}
+function capOf(k){ return k==='c' ? 9 : (nextK(k) ? 10 : 9); }
+function bAdd(k, d){
+  const sc = screen; if(sc.done) return;
+  const nv = sc.have[k] + d;
+  if(nv < 0 || nv > capOf(k)) return;
+  sc.have[k] = nv; renderBuild(k, d>0);
+  if(nv===10) say(`Tu as <b>10 ${NAMES[k][1]}</b> ! 10 ${NAMES[k][1]}, c'est pareil que <b>1 ${NAMES[nextK(k)][0]}</b>. Appuie sur « Échanger » 🔄`, 'info');
+}
+function renderBuild(changed, added){
+  const sc = screen;
+  for(const k of kinds()){
+    $('#bt-'+k).innerHTML = stack(k, sc.have[k]);
+    $('#n-'+k).textContent = sc.have[k];
+    $('#m-'+k).disabled = sc.have[k]===0;
+    $('#p-'+k).disabled = sc.have[k]>=capOf(k);
+    const nk = nextK(k);
+    $('#ex-'+k).innerHTML = (sc.have[k]===10 && nk) ? `<button class="btn ex pulse exbtn" onclick="exchangeBuild('${k}')">🔄 Échanger 10 ${NAMES[k][1]}<br>contre 1 ${NAMES[nk][0]}</button>` : '';
+  }
+  if(changed && added){ const b = $$(`#bt-${changed} .blk`).at(-1); if(b) b.classList.add('pop'); }
+}
+function exchangeBuild(k){
+  const sc = screen, nk = nextK(k);
+  if(sc.have[nk] >= 10) return say(`Il y a déjà 10 ${NAMES[nk][1]} : échange-les d'abord !`, 'bad');
+  $$(`#bt-${k} .blk`).forEach(b => b.classList.add('merge'));
+  setTimeout(() => {
+    sc.have[k] -= 10; sc.have[nk] += 1; renderBuild(nk, true);
+    say(`Et voilà : 10 ${NAMES[k][1]} sont devenues <b>1 ${NAMES[nk][0]}</b> ! 🎉`, 'ok');
+  }, 600);
+}
+function checkBuild(){
+  const sc = screen; if(sc.done) return;
+  const ks = kinds(), wrong = ks.filter(k => sc.have[k] !== sc.v[k]);
+  ks.forEach(k => $('#bt-'+k).classList.toggle('wrong', wrong.includes(k)));
+  if(!wrong.length){
+    sc.done = true; $$('.ctrl button').forEach(b=>b.disabled=true);
+    return finish(sc.n, sc.help, 'startBuild');
+  }
+  sc.tries++;
+  if(ks.some(k => sc.have[k]===10)) return say(`Tu as 10 blocs dans une colonne : fais d'abord l'échange 🔄 !`, 'bad');
+  const msgs = wrong.map(k => {
+    const d = sc.v[k] - sc.have[k];
+    if(sc.tries < 2) return d>0 ? `Il manque des <b class="${k}-t">${NAMES[k][1]}</b>.` : `Il y a trop de <b class="${k}-t">${NAMES[k][1]}</b>.`;
+    sc.help = true;
+    return `Il faut <b class="${k}-t">${plural(sc.v[k],k)}</b> (tu en as ${sc.have[k]}).`;
+  });
+  say(msgs.join('<br>') + (sc.tries<2 ? '<br>Regarde bien le nombre : quel chiffre est à la place des centaines, des dizaines, des unités ?' : ''), 'bad');
+}
+
+/* ---------- opérations posées (commun) ---------- */
+function digitCell(n, k){ const v = dg(n); if(k==='c' && n<100) return ''; if(k==='d' && n<10) return ''; return v[k]; }
+function posed(sign, a, b){
+  const ks = kinds();
+  let h = `<div class="posed" style="grid-template-columns:40px repeat(${ks.length},56px)">`;
+  h += `<div></div>` + ks.map(k=>`<div class="ph ${k}" data-k="${k}">${k.toUpperCase()}</div>`).join('');
+  h += `<div></div>` + ks.map(k=>`<div class="pc carry" id="pcar-${k}" data-k="${k}"></div>`).join('');
+  h += `<div></div>` + ks.map(k=>`<div class="pc ${k}" id="pa-${k}" data-k="${k}">${digitCell(a,k)}</div>`).join('');
+  h += `<div class="sign">${sign}</div>` + ks.map(k=>`<div class="pc ${k}" id="pb-${k}" data-k="${k}">${digitCell(b,k)}</div>`).join('');
+  h += `<div class="line"></div>`;
+  h += `<div></div>` + ks.map(k=>`<div class="pc res ${k}" id="pres-${k}" data-k="${k}"></div>`).join('');
+  return h + '</div>';
+}
+function opFinish(sc, sign, again){
+  const res = sign==='+' ? sc.a + sc.b : sc.a - sc.b;
+  // chiffres "0" inutiles à gauche : on les estompe
+  const ks = kinds();
+  for(const k of ks){ if((k==='c' && res<100) || (k==='d' && res<10)) $('#pres-'+k).classList.add('zero'); }
+  hl(null); $('#prompt').innerHTML = `${sc.a} ${sign==='+'?'+':'−'} ${sc.b} = <span style="font-size:36px">${colored(res)}</span>`;
+  finish(res, sc.help, again);
+}
+
+/* ---------- 3. J'ADDITIONNE ---------- */
+function hasCarryAdd(a, b){
+  const A = dg(a), B = dg(b);
+  const c1 = A.u + B.u >= 10 ? 1 : 0;
+  return c1===1 || (A.d + B.d + c1 >= 10);
+}
+function genAdd(){
+  for(let t=0; t<5000; t++){
+    let a, b;
+    if(S.max <= 99){ a = rnd(10, 89); b = rnd(Math.random()<.2 ? 2 : 10, 89); }
+    else { a = rnd(100, 899); b = Math.random()<.75 ? rnd(100, 899) : rnd(10, 99); }
+    if(a + b > S.max) continue;
+    if(hasCarryAdd(a, b) !== S.carry) continue;
+    return [a, b];
+  }
+  return S.max<=99 ? [23,14] : [234,152];
+}
+function startAdd(){
+  const [a, b] = genAdd();
+  const ks = kinds(), order = ORDER.filter(k => ks.includes(k));
+  screen = { a, b, A:dg(a), B:dg(b), carry:{c:0,d:0,u:0}, order, idx:0, tries:0, help:false, phase:'calc', check: checkAdd };
+  mount('➕ J\'additionne', `Calcule <b>${a} + ${b}</b>. On commence toujours par la colonne des <b class="u-t">unités</b>, à droite !`);
+  $('#zone').innerHTML = `<div class="opwrap">${posed('+', a, b)}<div class="prompt" id="prompt"></div></div>` +
+    table([
+      { id:'ta', label:String(a), v:screen.A },
+      { id:'tb', label:'+ '+b, v:screen.B },
+      { id:'tr', label:'= ?', html: k => stack(k,0) }
+    ], S.max>99 ? 9 : 14);
+  stepAdd();
+}
+function stepAdd(){
+  const sc = screen, k = sc.order[sc.idx];
+  if(!k) return opFinish(sc, '+', 'startAdd');
+  sc.phase = 'calc'; sc.tries = 0; hl(k);
+  const c = sc.carry[k];
+  $('#prompt').innerHTML = `<span class="lbl ${k}">Colonne des ${NAMES[k][1]}</span>` +
+    (c ? `<span class="carrytxt">${c}</span> + ` : '') + `${sc.A[k]} + ${sc.B[k]} = ${slot('s-x', k, 2)}` +
+    (c ? `<div style="font-size:17px;font-weight:700" class="carrytxt">N'oublie pas la retenue !</div>` : '');
+  say(`Combien de <b class="${k}-t">${NAMES[k][1]}</b> en tout ? Tu peux compter les blocs.`, 'info');
+  actions(''); bindSlots();
+}
+function checkAdd(){
+  const sc = screen; if(sc.phase!=='calc') return;
+  const k = sc.order[sc.idx], el = $('#s-x');
+  const sum = sc.A[k] + sc.B[k] + sc.carry[k];
+  if(el.textContent==='') return say('Écris ta réponse dans la case.', 'info');
+  if(+el.textContent !== sum){
+    sc.tries++; el.classList.add('bad');
+    if(sc.tries < 2) return say(`Pas tout à fait ! Compte tous les blocs de la colonne des <b class="${k}-t">${NAMES[k][1]}</b>${sc.carry[k] ? ', sans oublier la retenue' : ''}.`, 'bad');
+    sc.help = true; el.textContent = sum; el.classList.remove('bad'); el.classList.add('help');
+  } else el.classList.add('ok');
+  el.classList.add('locked'); activate(null); $('#pad').classList.add('hidden');
+  // on met tous les blocs de la colonne dans le résultat
+  $('#tr-'+k).innerHTML = stackMix(k, [{n: sc.carry[k], cls:'carried'}, {n: sum - sc.carry[k], cls:'pop'}]);
+  const nk = nextK(k);
+  if(sum >= 10 && nk){
+    sc.phase = 'exchange';
+    say(`Ça fait <b>${sum} ${NAMES[k][1]}</b>. C'est plus que 9 : dans une colonne on n'écrit qu'<b>un seul chiffre</b> ! On échange <b>10 ${NAMES[k][1]}</b> contre <b>1 ${NAMES[nk][0]}</b>.`, 'info');
+    actions(`<button class="btn ex pulse" onclick="exchangeAdd()">🔄 Échanger 10 ${NAMES[k][1]} contre 1 ${NAMES[nk][0]}</button>`);
+  } else {
+    $('#pres-'+k).textContent = sum;
+    say(`${sc.tries ? 'La réponse était ' + sum + '. ' : pick(PRAISE)+' '}J'écris <b class="${k}-t">${sum}</b> sous la colonne des ${NAMES[k][1]}.`, 'ok');
+    sc.idx++; sc.phase = 'wait';
+    actions(`<button class="btn go" onclick="stepAdd()">${sc.order[sc.idx] ? 'Colonne suivante ➜' : 'Voir le résultat ➜'}</button>`);
+  }
+}
+function exchangeAdd(){
+  const sc = screen, k = sc.order[sc.idx], nk = nextK(k);
+  const sum = sc.A[k] + sc.B[k] + sc.carry[k];
+  $$(`#tr-${k} .blk`).slice(0,10).forEach(b => b.classList.add('merge'));
+  actions('');
+  setTimeout(() => {
+    $('#tr-'+k).innerHTML = stack(k, sum-10);
+    sc.carry[nk] = 1;
+    $('#tr-'+nk).innerHTML = stack(nk, 1, 'carried pop');
+    $('#pcar-'+nk).innerHTML = '<span>1</span>';
+    $('#pres-'+k).textContent = sum - 10;
+    say(`J'écris <b class="${k}-t">${sum-10}</b> ${NAMES[k][1]} et je <b>retiens 1 ${NAMES[nk][0]}</b> : je la pose en haut de la colonne des ${NAMES[nk][1]} (c'est la <b>retenue</b>).`, 'ok');
+    sc.idx++; sc.phase = 'wait';
+    actions(`<button class="btn go" onclick="stepAdd()">Colonne suivante ➜</button>`);
+  }, 650);
+}
+
+/* ---------- 4. JE SOUSTRAIS ---------- */
+function simBorrow(a, b){ // renvoie null si impossible (casser un zéro), sinon {need:bool}
+  const A = dg(a), B = dg(b), ks = ORDER.filter(k => kinds().includes(k));
+  let need = false;
+  for(const k of ks){
+    if(A[k] < B[k]){
+      const nk = nextK(k); if(!nk || A[nk]===0) return null;
+      A[nk]--; A[k] += 10; need = true;
+    }
+  }
+  return { need };
+}
+function genSub(){
+  for(let t=0; t<5000; t++){
+    let a, b;
+    if(S.max <= 99){ a = rnd(20, 99); b = rnd(Math.random()<.2 ? 2 : 10, a-1); }
+    else { a = rnd(200, 999); b = Math.random()<.75 ? rnd(100, a-1) : rnd(10, 99); }
+    if(b >= a) continue;
+    const r = simBorrow(a, b); if(!r) continue;
+    if(r.need !== S.carry) continue;
+    return [a, b];
+  }
+  return S.max<=99 ? [58,23] : [587,243];
+}
+function startSub(){
+  const [a, b] = genSub();
+  const ks = kinds(), order = ORDER.filter(k => ks.includes(k));
+  screen = { a, b, A:dg(a), B:dg(b), order, idx:0, tries:0, help:false, phase:'calc', check: checkSub };
+  mount('➖ Je soustrais', `Calcule <b>${a} − ${b}</b>. On part de ${a} et on enlève ${b}. On commence par les <b class="u-t">unités</b> !`);
+  $('#zone').innerHTML = `<div class="opwrap">${posed('−', a, b)}<div class="prompt" id="prompt"></div></div>` +
+    table([
+      { id:'ta', label:String(a), v:screen.A },
+      { id:'tr', label:'= ?', html: k => stack(k,0) }
+    ], S.max>99 ? 9 : 14);
+  stepSub();
+}
+function stepSub(){
+  const sc = screen, k = sc.order[sc.idx];
+  if(!k) return opFinish(sc, '−', 'startSub');
+  sc.tries = 0; hl(k);
+  if(sc.A[k] < sc.B[k]){
+    const nk = nextK(k);
+    sc.phase = 'break';
+    $('#prompt').innerHTML = `<span class="lbl ${k}">Colonne des ${NAMES[k][1]}</span>${sc.A[k]} − ${sc.B[k]} = ?`;
+    say(`Il faut enlever <b>${sc.B[k]} ${NAMES[k][1]}</b>, mais il n'y en a que <b>${sc.A[k]}</b>. Pas assez ! 😮<br>On <b>casse 1 ${NAMES[nk][0]}</b> pour avoir <b>10 ${NAMES[k][1]}</b> de plus.`, 'info');
+    actions(`<button class="btn ex pulse" onclick="breakSub()">🔨 Casser 1 ${NAMES[nk][0]}</button>`);
+    $('#pad').classList.add('hidden');
+    $$(`#ta-${nk} .blk`).at(-1)?.classList.add('glow');
+    return;
+  }
+  sc.phase = 'calc';
+  $('#prompt').innerHTML = `<span class="lbl ${k}">Colonne des ${NAMES[k][1]}</span>${sc.A[k]} − ${sc.B[k]} = ${slot('s-x', k, 2)}`;
+  say(`J'ai <b>${plural(sc.A[k],k)}</b>, j'en enlève <b>${sc.B[k]}</b>. Combien en reste-t-il ?`, 'info');
+  actions(''); bindSlots();
+}
+function breakSub(){
+  const sc = screen, k = sc.order[sc.idx], nk = nextK(k);
+  const old = { k: sc.A[k], nk: sc.A[nk] };
+  $$(`#ta-${nk} .blk`).at(-1)?.classList.add('merge');
+  actions('');
+  setTimeout(() => {
+    sc.A[nk]--; sc.A[k] += 10;
+    $('#ta-'+nk).innerHTML = stack(nk, sc.A[nk]);
+    $('#ta-'+k).innerHTML = stackMix(k, [{n: old.k}, {n:10, cls:'pop carried'}]);
+    $('#pa-'+nk).innerHTML = `<sup>${sc.A[nk]}</sup><s>${old.nk}</s>`;
+    $('#pa-'+k).innerHTML = `<sup>${sc.A[k]}</sup><s>${old.k}</s>`;
+    say(`1 ${NAMES[nk][0]} est devenue 10 ${NAMES[k][1]}. Il y a maintenant <b>${sc.A[k]} ${NAMES[k][1]}</b> et <b>${plural(sc.A[nk], nk)}</b>.`, 'ok');
+    actions(`<button class="btn go" onclick="stepSub()">Continuer ➜</button>`);
+  }, 650);
+}
+function checkSub(){
+  const sc = screen; if(sc.phase!=='calc') return;
+  const k = sc.order[sc.idx], el = $('#s-x'), diff = sc.A[k] - sc.B[k];
+  if(el.textContent==='') return say('Écris ta réponse dans la case.', 'info');
+  if(+el.textContent !== diff){
+    sc.tries++; el.classList.add('bad');
+    if(sc.tries < 2) return say(`Pas tout à fait ! Touche ${sc.B[k]} bloc${sc.B[k]>1?'s':''} pour les enlever, puis compte ceux qui restent.`, 'bad');
+    sc.help = true; el.textContent = diff; el.classList.remove('bad'); el.classList.add('help');
+  } else el.classList.add('ok');
+  el.classList.add('locked'); activate(null); $('#pad').classList.add('hidden');
+  // on barre les blocs enlevés
+  const blks = $$(`#ta-${k} .blk`); blks.forEach(b => b.classList.remove('counted'));
+  blks.slice(blks.length - sc.B[k]).forEach(b => b.classList.add('removed'));
+  $('#tr-'+k).innerHTML = stack(k, diff, 'pop');
+  $('#pres-'+k).textContent = diff;
+  say(`${sc.tries ? 'La réponse était ' + diff + '. ' : pick(PRAISE)+' '}J'enlève ${sc.B[k]} ${NAMES[k][1]}, il en reste <b class="${k}-t">${diff}</b>.`, 'ok');
+  sc.idx++; sc.phase = 'wait';
+  actions(`<button class="btn go" onclick="stepSub()">${sc.order[sc.idx] ? 'Colonne suivante ➜' : 'Voir le résultat ➜'}</button>`);
+}
+
+/* ================= démarrage ================= */
+buildPad(); drawStars(); home();
+try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices(); }catch(e){}
+</script>
+</body>
+</html>
