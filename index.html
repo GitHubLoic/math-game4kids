@@ -43,7 +43,7 @@ main{max-width:1100px;margin:0 auto;padding:16px}
 .card .ico{font-size:42px}
 .card h3{margin:6px 0 4px;font-size:22px;font-weight:900;color:var(--ink)}
 .card p{margin:0;color:var(--muted);font-size:16px;font-weight:600}
-.card.k1{border-color:var(--u)} .card.k2{border-color:var(--d)} .card.k3{border-color:var(--gold)} .card.k4{border-color:var(--c)}
+.card.k1{border-color:var(--u)} .card.k2{border-color:var(--d)} .card.k3{border-color:var(--gold)} .card.k4{border-color:var(--c)} .card.k5{border-color:#a855f7}
 .settings{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin:22px 0 6px}
 .seg{display:flex;background:#fff;border-radius:16px;padding:5px;box-shadow:0 2px 8px rgba(0,0,0,.05);align-items:center}
 .seg span{padding:0 10px;color:var(--muted);font-size:15px}
@@ -182,14 +182,14 @@ const store = {
   get(k, d){ try{ const v = localStorage.getItem('fdn_'+k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } },
   set(k, v){ try{ localStorage.setItem('fdn_'+k, JSON.stringify(v)); }catch(e){} }
 };
-const S = { max: store.get('max', 99), carry: store.get('carry', false), voice: store.get('voice', false), stars: store.get('stars', 0), streak: 0 };
+const S = { max: store.get('max', 999), forceC:false, carry: store.get('carry', false), voice: store.get('voice', false), stars: store.get('stars', 0), streak: 0 };
 const rnd = (a, b) => a + Math.floor(Math.random()*(b-a+1));
 const pick = a => a[Math.floor(Math.random()*a.length)];
 const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 const NAMES = { c:['centaine','centaines'], d:['dizaine','dizaines'], u:['unité','unités'] };
 const VAL = { c:100, d:10, u:1 };
 const ORDER = ['u','d','c'];
-const kinds = () => S.max > 99 ? ['c','d','u'] : ['d','u'];
+const kinds = () => (S.max > 99 || S.forceC) ? ['c','d','u'] : ['d','u'];
 const nextK = k => { const n = ORDER[ORDER.indexOf(k)+1]; return kinds().includes(n) ? n : null; };
 const dg = n => ({ c: Math.floor(n/100), d: Math.floor(n/10)%10, u: n%10 });
 const plural = (n, k) => `${n} ${n>1 ? NAMES[k][1] : NAMES[k][0]}`;
@@ -349,7 +349,7 @@ function genNumber(){
 
 /* ---------- ACCUEIL ---------- */
 function home(){
-  screen = null; activate(null);
+  screen = null; activate(null); S.forceC = false;
   try{ speechSynthesis.cancel(); }catch(e){}
   $('#title').textContent = 'La Fabrique des Nombres';
   $('#back').classList.add('hidden'); $('#pad').classList.add('hidden');
@@ -366,6 +366,7 @@ function home(){
     <button class="card k2" onclick="startBuild()"><div class="ico">🧱</div><h3>Je fabrique</h3><p>Construis le nombre avec les blocs.</p></button>
     <button class="card k3" onclick="startAdd()"><div class="ico">➕</div><h3>J'additionne</h3><p>Des additions colonne par colonne.</p></button>
     <button class="card k4" onclick="startSub()"><div class="ico">➖</div><h3>Je soustrais</h3><p>Des soustractions colonne par colonne.</p></button>
+    <button class="card k5" onclick="startGroup()"><div class="ico">💯</div><h3>Je fais des centaines</h3><p>Regroupe 10 dizaines pour fabriquer 1 centaine.</p></button>
   </div>
   <div class="settings">
     <div class="seg"><span>Nombres</span>
@@ -700,6 +701,75 @@ function checkSub(){
   say(`${sc.tries ? 'La réponse était ' + diff + '. ' : pick(PRAISE)+' '}J'enlève ${sc.B[k]} ${NAMES[k][1]}, il en reste <b class="${k}-t">${diff}</b>.`, 'ok');
   sc.idx++; sc.phase = 'wait';
   actions(`<button class="btn go" onclick="stepSub()">${sc.order[sc.idx] ? 'Colonne suivante ➜' : 'Voir le résultat ➜'}</button>`);
+}
+
+/* ---------- 5. JE FAIS DES CENTAINES ---------- */
+function startGroup(){
+  S.forceC = true;
+  const d0 = rnd(11, 39), u = Math.random()<.5 ? 0 : rnd(1, 9), n = d0*10 + u;
+  screen = { n, v:dg(n), d0, u, have:{c:0, d:d0, u}, phase:'group', tries:0, help:false, check: checkGroup };
+  mount('💯 Je fais des centaines', `Voici <b class="d-t">${d0} dizaines</b>${u ? ` et <b class="u-t">${plural(u,'u')}</b>` : ''}.<br>
+    Avec <b class="d-t">10 dizaines</b> on fabrique <b class="c-t">1 centaine</b> (10 × 10 = 100). Fais tous les paquets possibles !`);
+  $('#zone').innerHTML = table([
+    { id:'g', label:'', html: k => '' },
+    { id:'gx', label:'', html: k => '' }
+  ], 10) + `<div id="step2"></div>`;
+  $('#pad').classList.add('hidden');
+  renderGroup();
+  say(`Touche « Échanger » pour transformer 10 barres bleues en 1 plaque rouge.`, 'info');
+}
+function renderGroup(popC){
+  const sc = screen, num = n => `<span style="font-size:28px;font-weight:900">${n}</span>`;
+  for(const k of kinds()) $('#g-'+k).innerHTML = stack(k, sc.have[k]);
+  if(popC) $$('#g-c .blk').at(-1)?.classList.add('pop');
+  $('#gx-c').innerHTML = num(sc.have.c);
+  $('#gx-u').innerHTML = num(sc.have.u);
+  $('#gx-d').innerHTML = num(sc.have.d) +
+    (sc.have.d >= 10 && sc.phase==='group' ? `<button class="btn ex pulse exbtn" onclick="exchangeGroup()">🔄 Échanger 10 dizaines<br>contre 1 centaine</button>` : '');
+}
+function exchangeGroup(){
+  const sc = screen; if(sc.phase!=='group' || sc.have.d < 10 || sc.busy) return;
+  sc.busy = true;
+  $$('#g-d .blk').slice(0,10).forEach(b => b.classList.add('merge'));
+  $('#gx-d').querySelector('button')?.remove();
+  setTimeout(() => {
+    sc.busy = false; sc.have.d -= 10; sc.have.c++;
+    if(sc.have.d < 10){
+      sc.phase = 'answer'; renderGroup(true);
+      say(`Il reste <b class="d-t">${plural(sc.have.d,'d')}</b> : moins de 10, on ne peut plus faire de centaine. 👍<br>Maintenant, remplis les cases !`, 'ok');
+      $('#step2').innerHTML = `<div class="instr" style="margin-top:14px;line-height:2">
+        <b class="d-t">${sc.d0} dizaines</b>${sc.u ? ` et <b class="u-t">${plural(sc.u,'u')}</b>` : ''}, c'est :<br>
+        ${slot('s-c','c',1)} <b class="c-t">centaine(s)</b> &nbsp; ${slot('s-d','d',1)} <b class="d-t">dizaine(s)</b> &nbsp; ${slot('s-u','u',1)} <b class="u-t">unité(s)</b><br>
+        Le nombre : ${slot('s-n','',3)}</div>`;
+      bindSlots();
+    } else {
+      renderGroup(true);
+      say(`10 dizaines = <b class="c-t">1 centaine</b> ! Tu as maintenant <b class="c-t">${plural(sc.have.c,'c')}</b>. Encore un paquet ?`, 'ok');
+    }
+  }, 650);
+}
+function checkGroup(){
+  const sc = screen; if(sc.phase!=='answer') return;
+  const ids = ['c','d','u','n'], want = { ...sc.v, n: sc.n };
+  let empty = false;
+  for(const k of ids){
+    const el = $('#s-'+k); if(el.classList.contains('locked')) continue;
+    el.classList.remove('bad');
+    if(el.textContent===''){ empty = true; continue; }
+    if(+el.textContent === want[k]) el.classList.add('ok','locked'); else el.classList.add('bad');
+  }
+  const bad = ids.filter(k => $('#s-'+k).classList.contains('bad'));
+  if(!bad.length && !empty){ sc.phase = 'done'; return finish(sc.n, sc.help, 'startGroup'); }
+  if(!bad.length){ bindSlots(); return say('Remplis toutes les cases.', 'info'); }
+  sc.tries++;
+  if(sc.tries >= 2){
+    sc.help = true;
+    bad.forEach(k => { const el=$('#s-'+k); el.textContent = want[k]; el.classList.remove('bad'); el.classList.add('help','locked'); });
+    if(!freeSlots().length){ sc.phase = 'done'; return finish(sc.n, true, 'startGroup'); }
+    bindSlots(); return say(`Je t'ai aidé(e) pour les cases en jaune. Regarde le tableau : chaque colonne donne un chiffre.`, 'bad');
+  }
+  bindSlots();
+  say(`Pas tout à fait ! Compte les plaques rouges, les barres bleues et les cubes verts dans le tableau. Le nombre s'écrit dans l'ordre : <b class="c-t">centaines</b>, <b class="d-t">dizaines</b>, <b class="u-t">unités</b>.`, 'bad');
 }
 
 /* ================= démarrage ================= */
