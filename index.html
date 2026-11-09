@@ -161,6 +161,16 @@ main{max-width:1100px;margin:0 auto;padding:16px}
   .instr{font-size:19px} .th{font-size:15px} .td.lab{font-size:17px;padding:6px}
   #pad button{width:52px;height:52px;font-size:26px} #pad .ok{width:120px}
   .posed .pc{font-size:32px;width:42px}
+  main{padding:12px}
+  .td{padding:8px 3px;min-width:0}
+  .td.lab{font-size:14px;padding:4px;white-space:normal;text-align:center}
+  .td.lab:empty{padding:0}
+  .ctrl{gap:4px}
+  .ctrl button{width:34px;height:34px;font-size:22px}
+  .ctrl .n{font-size:22px;min-width:18px}
+  .exbtn{font-size:12px!important;padding:8px 6px!important}
+  .slot{min-width:46px;height:54px;font-size:32px}
+  .slot[data-len="2"]{min-width:64px} .slot[data-len="3"]{min-width:84px}
 }
 </style>
 </head>
@@ -307,8 +317,10 @@ document.addEventListener('keydown', e => {
 function stack(k, n, cls=''){ let h=''; for(let i=0;i<n;i++) h+=`<div class="blk ${k} ${cls}"></div>`; return `<div class="stack ${k}">${h}</div>`; }
 function stackMix(k, parts){ let h=''; for(const p of parts) for(let i=0;i<p.n;i++) h+=`<div class="blk ${k} ${p.cls||''}"></div>`; return `<div class="stack ${k}">${h}</div>`; }
 function table(rows, s){
-  const ks = kinds(), w = {c:'3fr', d:'1.6fr', u:'1.2fr'};
-  let h = `<div class="tbl" style="--s:${s}px;grid-template-columns:auto ${ks.map(k=>w[k]).join(' ')}">`;
+  const ks = kinds(), narrow = window.innerWidth < 640;
+  const w = narrow ? {c:'1.25fr', d:'1fr', u:'1fr'} : {c:'3fr', d:'1.6fr', u:'1.2fr'};
+  if(narrow && ks.length===3) s = Math.min(s, 8);
+  let h = `<div class="tbl" style="--s:${s}px;grid-template-columns:auto ${ks.map(k=>`minmax(0,${w[k]})`).join(' ')}">`;
   h += `<div class="th lab"></div>` + ks.map(k=>`<div class="th ${k}" data-k="${k}">${cap(NAMES[k][1])}</div>`).join('');
   for(const r of rows){
     h += `<div class="td lab">${r.label||''}</div>`;
